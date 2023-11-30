@@ -53,6 +53,10 @@ RUTORRENT_HEALTH_PORT=$((RUTORRENT_PORT + 1))
 WEBDAV_PORT=${WEBDAV_PORT:-9000}
 WEBDAV_HEALTH_PORT=$((WEBDAV_PORT + 1))
 
+DOWNLOAD_ROOT=${DOWNLOAD_ROOT:-/downloads}
+DOWNLOAD_COMPLETE=${DOWNLOAD_COMPLETE:-complete}
+DOWNLOAD_INCOMPLETE=${DOWNLOAD_INCOMPLETE:-temp}
+
 # WAN IP
 if [ -z "$WAN_IP" ] && [ -n "$WAN_IP_CMD" ]; then
   WAN_IP=$(eval "$WAN_IP_CMD")
@@ -117,6 +121,7 @@ echo "Setting Nginx WebDAV configuration..."
 sed -e "s!@WEBDAV_AUTHBASIC_STRING@!$WEBDAV_AUTHBASIC_STRING!g" \
   -e "s!@WEBDAV_PORT@!$WEBDAV_PORT!g" \
   -e "s!@WEBDAV_HEALTH_PORT@!$WEBDAV_HEALTH_PORT!g" \
+  -e "s!@DOWNLOAD_COMPLETE@!${DOWNLOAD_ROOT}/${DOWNLOAD_COMPLETE}!g" \
   /tpls/etc/nginx/conf.d/webdav.conf > /etc/nginx/conf.d/webdav.conf
 
 # Healthcheck
@@ -147,8 +152,9 @@ mkdir -p /data/geoip \
   /data/rutorrent/share/users \
   /data/rutorrent/share/torrents \
   /data/rutorrent/themes \
-  /downloads/complete \
-  /downloads/temp
+  "${DOWNLOAD_ROOT}" \
+  "${DOWNLOAD_ROOT}/${DOWNLOAD_COMPLETE}" \
+  "${DOWNLOAD_ROOT}/${DOWNLOAD_INCOMPLETE}"
 touch /passwd/rpc.htpasswd \
   /passwd/rutorrent.htpasswd \
   /passwd/webdav.htpasswd \
@@ -179,6 +185,9 @@ sed -e "s!@RT_LOG_LEVEL@!$RT_LOG_LEVEL!g" \
   -e "s!@RT_DHT_PORT@!$RT_DHT_PORT!g" \
   -e "s!@RT_INC_PORT@!$RT_INC_PORT!g" \
   -e "s!@XMLRPC_SIZE_LIMIT@!$XMLRPC_SIZE_LIMIT!g" \
+  -e "s!@DOWNLOAD_ROOT@!${DOWNLOAD_ROOT}!g" \
+  -e "s!@DOWNLOAD_COMPLETE@!/${DOWNLOAD_COMPLETE}!g" \
+  -e "s!@DOWNLOAD_INCOMPLETE@!/${DOWNLOAD_INCOMPLETE}!g" \
   -e "s!@RT_SESSION_SAVE_SECONDS@!$RT_SESSION_SAVE_SECONDS!g" \
   /tpls/etc/rtorrent/.rtlocal.rc > /etc/rtorrent/.rtlocal.rc
 if [ "${RT_LOG_EXECUTE}" = "true" ]; then
@@ -382,9 +391,9 @@ echo "Fixing perms..."
 chown rtorrent:rtorrent \
   /data/rutorrent/share/users \
   /data/rutorrent/share/torrents \
-  /downloads \
-  /downloads/complete \
-  /downloads/temp \
+  "${DOWNLOAD_ROOT}" \
+  "${DOWNLOAD_ROOT}/${DOWNLOAD_COMPLETE}" \
+  "${DOWNLOAD_ROOT}/${DOWNLOAD_INCOMPLETE}" \
   "${RU_LOG_FILE}"
 chown -R rtorrent:rtorrent \
   /data/geoip \
