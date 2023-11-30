@@ -12,7 +12,7 @@
 ## About
 
 [rTorrent](https://github.com/rakshasa/rtorrent) with [ruTorrent](https://github.com/Novik/ruTorrent)
-Docker image.
+Docker image. (custom download path envvar)
 
 > **Note**
 > 
